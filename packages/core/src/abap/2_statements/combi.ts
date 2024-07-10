@@ -1,10 +1,11 @@
 import * as Tokens from "../1_lexer/tokens";
 import {AbstractToken as Tokens_Token} from "../1_lexer/tokens/abstract_token";
 import {Position} from "../../position";
-import {TokenNode, ExpressionNode, TokenNodeRegex} from "../nodes";
+import {ExpressionNode, TokenNode, TokenNodeRegex} from "../nodes";
 import {Version} from "../../version";
 import {IStatementRunnable} from "./statement_runnable";
 import {Result} from "./result";
+import {ISyntaxVisitor} from "../../syntax";
 
 class Regex implements IStatementRunnable {
 
@@ -49,6 +50,10 @@ class Regex implements IStatementRunnable {
   public first() {
     return [""];
   }
+
+  public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
+    visitor.visitTerminalStatement(this.regexp.source.replace(/\\/g, "\\\\"));
+  }
 }
 
 class Word implements IStatementRunnable {
@@ -72,7 +77,7 @@ class Word implements IStatementRunnable {
 
     for (const input of r) {
       if (input.remainingLength() !== 0
-          && input.peek().getStr().toUpperCase() === this.s) {
+        && input.peek().getStr().toUpperCase() === this.s) {
 //        console.log("match, " + this.s + result.length);
         result.push(input.shift(new TokenNode(input.peek())));
       }
@@ -91,6 +96,11 @@ class Word implements IStatementRunnable {
   public first() {
     return [this.s];
   }
+
+  public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
+    visitor.visitTerminalStatement(this.s);
+  }
+
 }
 
 class Token implements IStatementRunnable {
@@ -114,7 +124,7 @@ class Token implements IStatementRunnable {
 
     for (const input of r) {
       if (input.remainingLength() !== 0
-          && input.peek().constructor.name.toUpperCase() === this.name) {
+        && input.peek().constructor.name.toUpperCase() === this.name) {
         result.push(input.shift(new TokenNode(input.peek())));
       }
     }
@@ -141,6 +151,20 @@ class Token implements IStatementRunnable {
   public first() {
     return [""];
   }
+
+  public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
+    let text = this.name;
+
+    const toke: any = Tokens;
+    for (const token in Tokens) {
+      if (token.toUpperCase() === this.name && toke[token].railroad) {
+        text = toke[token].railroad();
+        break;
+      }
+    }
+    visitor.visitToken(text);
+  }
+
 }
 
 class Vers implements IStatementRunnable {
@@ -199,6 +223,15 @@ class Vers implements IStatementRunnable {
   public first() {
     return this.runnable.first();
   }
+
+  public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
+    let text: string = this.version;
+    if (this.or) {
+      text += " or " + this.or;
+    }
+    visitor.addComment(text);
+    visitor.visitSequence(this.runnable);
+  }
 }
 
 class VersNot implements IStatementRunnable {
@@ -241,6 +274,11 @@ class VersNot implements IStatementRunnable {
 
   public first() {
     return this.runnable.first();
+  }
+
+  public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
+    visitor.addComment("not " + this.version);
+    visitor.visitSequence(this.runnable);
   }
 }
 
@@ -290,6 +328,10 @@ class OptionalPriority implements IStatementRunnable {
   public first() {
     return [""];
   }
+
+  public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
+    visitor.visitOptional(this.optional);
+  }
 }
 
 class Optional implements IStatementRunnable {
@@ -331,6 +373,10 @@ class Optional implements IStatementRunnable {
   public first() {
     return [""];
   }
+
+  public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
+    visitor.visitOptional(this.optional);
+  }
 }
 
 class Star implements IStatementRunnable {
@@ -355,7 +401,7 @@ class Star implements IStatementRunnable {
     try {
       let res = r;
       let input: Result[] = [];
-      for (;;) {
+      for (; ;) {
         input = res;
         res = this.sta.run(input);
 
@@ -391,6 +437,10 @@ class Star implements IStatementRunnable {
   public first() {
     return [""];
   }
+
+  public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
+    visitor.visitZeroOrMore(this.sta);
+  }
 }
 
 class StarPriority implements IStatementRunnable {
@@ -415,7 +465,7 @@ class StarPriority implements IStatementRunnable {
     let res = r;
 //    let input: Result[] = [];
     let prev: Result[] | undefined;
-    for (;;) {
+    for (; ;) {
 //      input = res;
       res = this.sta.run(res);
 
@@ -450,6 +500,10 @@ class StarPriority implements IStatementRunnable {
   public first() {
     return [""];
   }
+  public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
+    visitor.visitZeroOrMore(this.sta);
+  }
+
 }
 
 class Plus implements IStatementRunnable {
@@ -484,6 +538,9 @@ class Plus implements IStatementRunnable {
 
   public first() {
     return this.plu.first();
+  }
+  public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
+    visitor.visitOneOrMore(this.plu);
   }
 }
 
@@ -520,6 +577,10 @@ class PlusPriority implements IStatementRunnable {
   public first() {
     return this.plu.first();
   }
+  public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
+    visitor.visitOneOrMore(this.plu);
+  }
+
 }
 
 class Sequence implements IStatementRunnable {
@@ -541,7 +602,9 @@ class Sequence implements IStatementRunnable {
   }
 
   public getUsing(): string[] {
-    return this.list.reduce((a, c) => { return a.concat(c.getUsing()); }, [] as string[]);
+    return this.list.reduce((a, c) => {
+      return a.concat(c.getUsing());
+    }, [] as string[]);
   }
 
   public run(r: Result[]): Result[] {
@@ -572,7 +635,9 @@ class Sequence implements IStatementRunnable {
   }
 
   public railroad() {
-    const children = this.list.map((e) => { return e.railroad(); });
+    const children = this.list.map((e) => {
+      return e.railroad();
+    });
     return "Railroad.Sequence(" + children.join() + ")";
   }
 
@@ -587,6 +652,10 @@ class Sequence implements IStatementRunnable {
   public first() {
     return this.list[0].first();
   }
+  public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
+    visitor.visitSequence(this.list);
+  }
+
 }
 
 class WordSequence implements IStatementRunnable {
@@ -630,6 +699,9 @@ class WordSequence implements IStatementRunnable {
 
   public first() {
     return this.words[0].first();
+  }
+  public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
+    visitor.visitTerminalStatement(this.stri);
   }
 }
 
@@ -699,6 +771,10 @@ export abstract class Expression implements IStatementRunnable {
   public first() {
     return this.getRunnable().first();
   }
+  public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
+    visitor.visitNonTerminalExpression(this.getName());
+  }
+
 }
 
 class Permutation implements IStatementRunnable {
@@ -720,7 +796,9 @@ class Permutation implements IStatementRunnable {
   }
 
   public getUsing() {
-    return this.list.reduce((a, c) => { return a.concat(c.getUsing()); }, [] as string[]);
+    return this.list.reduce((a, c) => {
+      return a.concat(c.getUsing());
+    }, [] as string[]);
   }
 
   public run(r: Result[]): Result[] {
@@ -746,17 +824,24 @@ class Permutation implements IStatementRunnable {
   }
 
   public railroad() {
-    const children = this.list.map((e) => { return e.railroad(); });
+    const children = this.list.map((e) => {
+      return e.railroad();
+    });
     return "Railroad.MultipleChoice(0, 'any'," + children.join() + ")";
   }
 
   public toStr() {
-    const children = this.list.map((e) => { return e.toStr(); });
+    const children = this.list.map((e) => {
+      return e.toStr();
+    });
     return "per(" + children.join() + ")";
   }
 
   public first() {
     return [""];
+  }
+  public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
+    visitor.visitMultipleChoice(0, this.list);
   }
 }
 
@@ -793,6 +878,10 @@ class FailCombinator implements IStatementRunnable {
   public first() {
     return [];
   }
+
+  public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
+    visitor.visitTerminalStatement("!FailCombinator");  // TODO figure out what this is
+  }
 }
 
 // Note that Plus is implemented with Star
@@ -821,6 +910,10 @@ class FailStar implements IStatementRunnable {
   public first() {
     return [];
   }
+  public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
+    visitor.visitTerminalStatement("!FailStar");  // TODO figure out what this is
+  }
+
 }
 
 class Alternative implements IStatementRunnable {
@@ -842,7 +935,9 @@ class Alternative implements IStatementRunnable {
   }
 
   public getUsing() {
-    return this.list.reduce((a, c) => { return a.concat(c.getUsing()); }, [] as string[]);
+    return this.list.reduce((a, c) => {
+      return a.concat(c.getUsing());
+    }, [] as string[]);
   }
 
   public run(r: Result[]): Result[] {
@@ -857,7 +952,9 @@ class Alternative implements IStatementRunnable {
   }
 
   public railroad() {
-    const children = this.list.map((e) => { return e.railroad(); });
+    const children = this.list.map((e) => {
+      return e.railroad();
+    });
     return "Railroad.Choice(0, " + children.join() + ")";
   }
 
@@ -886,6 +983,9 @@ class Alternative implements IStatementRunnable {
     }
     f1.push(...f2);
     return f1;
+  }
+  public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
+    visitor.visitChoice(0, this.list);
   }
 }
 
@@ -909,7 +1009,9 @@ class AlternativePriority implements IStatementRunnable {
   }
 
   public getUsing() {
-    return this.list.reduce((a, c) => { return a.concat(c.getUsing()); }, [] as string[]);
+    return this.list.reduce((a, c) => {
+      return a.concat(c.getUsing());
+    }, [] as string[]);
   }
 
   public run(r: Result[]): Result[] {
@@ -929,7 +1031,9 @@ class AlternativePriority implements IStatementRunnable {
   }
 
   public railroad() {
-    const children = this.list.map((e) => { return e.railroad(); });
+    const children = this.list.map((e) => {
+      return e.railroad();
+    });
     return "Railroad.Choice(0, " + children.join() + ")";
   }
 
@@ -959,6 +1063,11 @@ class AlternativePriority implements IStatementRunnable {
     f1.push(...f2);
     return f1;
   }
+
+  public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
+    visitor.visitChoice(0, this.list);
+  }
+
 }
 
 export class Combi {
@@ -984,7 +1093,9 @@ export class Combi {
 // todo, move these walkers of the syntax tree to some abstraction?
     let res = runnable.listKeywords();
 // remove duplicates
-    res = res.filter((x, i, a) => { return a.indexOf(x) === i; });
+    res = res.filter((x, i, a) => {
+      return a.indexOf(x) === i;
+    });
     return res;
   }
 
@@ -998,13 +1109,13 @@ export class Combi {
     const input = new Result(tokens, 0);
     try {
       const result = runnable.run([input]);
-/*
-    console.log("res: " + result.length);
-    for (const res of result) {
-      console.dir(res.getNodes().map(n => n.get().constructor.name));
-      console.dir(res.getNodes().map(n => n.concatTokens()));
-    }
-*/
+      /*
+          console.log("res: " + result.length);
+          for (const res of result) {
+            console.dir(res.getNodes().map(n => n.get().constructor.name));
+            console.dir(res.getNodes().map(n => n.concatTokens()));
+          }
+      */
       for (const res of result) {
         if (res.remainingLength() === 0) {
           return res.getNodes();
@@ -1044,8 +1155,8 @@ export function tok(t: new (p: Position, s: string) => any): IStatementRunnable 
   return new Token(t.name);
 }
 
-const expressionSingletons: {[index: string]: Expression} = {};
-const stringSingletons: {[index: string]: IStatementRunnable} = {};
+const expressionSingletons: { [index: string]: Expression } = {};
+const stringSingletons: { [index: string]: IStatementRunnable } = {};
 type InputType = (new () => Expression) | string | IStatementRunnable;
 
 function map(s: InputType): IStatementRunnable {
@@ -1067,53 +1178,67 @@ function map(s: InputType): IStatementRunnable {
     return s as IStatementRunnable;
   }
 }
+
 export function seq(first: InputType, second: InputType, ...rest: InputType[]): IStatementRunnable {
   const list = [map(first), map(second)];
   list.push(...rest.map(map));
   return new Sequence(list);
 }
+
 export function alt(first: InputType, second: InputType, ...rest: InputType[]): IStatementRunnable {
   const list = [map(first), map(second)];
   list.push(...rest.map(map));
   return new Alternative(list);
 }
+
 export function altPrio(first: InputType, second: InputType, ...rest: InputType[]): IStatementRunnable {
   const list = [map(first), map(second)];
   list.push(...rest.map(map));
   return new AlternativePriority(list);
 }
+
 export function opt(first: InputType): IStatementRunnable {
   return new Optional(map(first));
 }
+
 export function optPrio(first: InputType): IStatementRunnable {
   return new OptionalPriority(map(first));
 }
+
 export function per(first: InputType, second: InputType, ...rest: InputType[]): IStatementRunnable {
   const list = [map(first), map(second)];
   list.push(...rest.map(map));
   return new Permutation(list);
 }
+
 export function star(first: InputType): IStatementRunnable {
   return new Star(map(first));
 }
+
 export function starPrio(first: InputType): IStatementRunnable {
   return new StarPriority(map(first));
 }
+
 export function plus(first: InputType): IStatementRunnable {
   return new Plus(map(first));
 }
+
 export function plusPrio(first: InputType): IStatementRunnable {
   return new PlusPriority(map(first));
 }
+
 export function ver(version: Version, first: InputType, or?: Version): IStatementRunnable {
   return new Vers(version, map(first), or);
 }
+
 export function verNot(version: Version, first: InputType): IStatementRunnable {
   return new VersNot(version, map(first));
 }
+
 export function failCombinator(): IStatementRunnable {
   return new FailCombinator();
 }
+
 export function failStar(): IStatementRunnable {
   return new FailStar();
 }

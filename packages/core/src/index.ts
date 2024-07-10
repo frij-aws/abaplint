@@ -58,7 +58,7 @@ import {CyclomaticComplexityStats} from "./utils/cyclomatic_complexity_stats";
 import {SkipLogic} from "./skip_logic";
 import {Diagnostics} from "./lsp/diagnostics";
 import {LSPEdit} from "./lsp/_edit";
-
+import {ISyntaxVisitable, ISyntaxVisitor, SyntaxGenerator, ISyntaxFactory} from "./syntax";
 // do not include this file from anywhere within abaplint
 // https://github.com/abaplint/abaplint/issues/873
 
@@ -75,4 +75,5 @@ export {MemoryFile, Issue, Config, Version, ReferenceType, CyclomaticComplexityS
   IMethodDefinition, DDLParser, LanguageServerTypes, CDSParser, ExpressionsCDS,
   Tokens, ABAPObject, SyntaxLogic, SpaghettiScope, IdentifierMeta, RulesRunner,
   ABAPFile, CurrentScope, IRegistry, Position, PrettyPrinter, Renamer as Rename,
-  Diagnostics, IRenameSettings, Info, Visibility, Severity, RuleTag, LSPEdit};
+  Diagnostics, IRenameSettings, Info, Visibility, Severity, RuleTag, LSPEdit,
+  ISyntaxVisitable, ISyntaxVisitor, ISyntaxFactory, SyntaxGenerator};

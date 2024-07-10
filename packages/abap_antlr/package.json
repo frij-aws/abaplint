@@ -1,0 +1,63 @@
+{
+    "name": "@abaplint/abap_antlr",
+    "version": "2.110.6",
+    "description": "abap_antlr - ANTLR generator for ABAP",
+    "funding": "https://github.com/sponsors/larshp",
+    "bin": {
+        "abap_antlr": "abap_antlr"
+    },
+    "scripts": {
+        "lint": "eslint src/**/*.ts test/**/*.ts --format unix",
+        "compile": "tsc",
+        "test": "npm run compile && mocha && npm run lint && npm run webpack",
+        "webpack": "webpack --progress",
+        "publish:minor": "npm --no-git-tag-version version minor && rm -rf build && npm install && npm run test && npm publish --access public",
+        "publish:patch": "npm --no-git-tag-version version patch && rm -rf build && npm install && npm run test && npm publish --access public"
+    },
+    "mocha": {
+        "recursive": true,
+        "reporter": "progress",
+        "spec": "./build/test/*.js",
+        "require": "source-map-support/register"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/abaplint/abaplint.git"
+    },
+    "engines": {
+        "node": ">=12.0.0"
+    },
+    "keywords": [
+        "ABAP",
+        "lint"
+    ],
+    "author": "Lars Hvam Petersen",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/abaplint/abaplint/issues"
+    },
+    "homepage": "https://abaplint.org",
+    "devDependencies": {
+        "@abaplint/core": "^2.110.6",
+        "@types/chai": "^4.3.16",
+        "@types/glob": "^8.1.0",
+        "@types/minimist": "^1.2.5",
+        "@types/mocha": "^10.0.7",
+        "@types/node": "^20.14.9",
+        "@types/progress": "^2.0.7",
+        "chai": "^4.4.1",
+        "chalk": "^5.3.0",
+        "eslint": "^8.57.0",
+        "glob": "^7.2.3",
+        "json5": "^2.2.3",
+        "memfs": "^4.9.3",
+        "minimist": "^1.2.8",
+        "mocha": "^10.6.0",
+        "progress": "^2.0.3",
+        "typescript": "^5.5.3",
+        "webpack": "^5.92.1",
+        "webpack-cli": "^5.1.4",
+        "xml-js": "^1.6.11"
+    },
+    "dependencies": {}
+}

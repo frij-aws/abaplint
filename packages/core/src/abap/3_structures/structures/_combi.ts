@@ -4,6 +4,9 @@ import {INode} from "../../nodes/_inode";
 import {IStatement, MacroCall, NativeSQL} from "../../2_statements/statements/_statement";
 import {IStructureRunnable} from "./_structure_runnable";
 import {IMatch} from "./_match";
+import {DiagnosticSeverity} from "vscode-languageserver-types";
+import Error = DiagnosticSeverity.Error;
+import {ISyntaxVisitor} from "../../../syntax";
 
 class Sequence implements IStructureRunnable {
   private readonly list: IStructureRunnable[];
@@ -60,6 +63,10 @@ class Sequence implements IStructureRunnable {
       errorDescription: "",
       errorMatched: 0,
     };
+  }
+
+  public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
+    visitor.visitSequence(this.list);
   }
 }
 
@@ -161,6 +168,10 @@ class Alternative implements IStructureRunnable {
       };
     }
   }
+  public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
+    visitor.visitChoice(0, this.list);
+  }
+
 }
 
 class Optional implements IStructureRunnable {
@@ -187,6 +198,10 @@ class Optional implements IStructureRunnable {
   public first() {
     return [""];
   }
+  public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
+    visitor.visitOptional(this.obj);
+  }
+
 }
 
 class Star implements IStructureRunnable {
@@ -255,6 +270,10 @@ class Star implements IStructureRunnable {
   public first() {
     return [""];
   }
+  public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
+    visitor.visitZeroOrMore(this.obj);
+  }
+
 }
 
 class SubStructure implements IStructureRunnable {
@@ -297,6 +316,10 @@ class SubStructure implements IStructureRunnable {
     }
     return ret;
   }
+  public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
+    visitor.visitNonTerminalStructure(this.s.constructor.name);
+  }
+
 }
 
 class SubStatement implements IStructureRunnable {
@@ -354,6 +377,10 @@ class SubStatement implements IStructureRunnable {
       };
     }
   }
+  public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
+    visitor.visitTerminalStructure(this.className());
+  }
+
 }
 
 export function seq(first: IStructureRunnable, ...rest: IStructureRunnable[]): IStructureRunnable {
