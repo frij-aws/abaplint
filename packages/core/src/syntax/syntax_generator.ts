@@ -23,21 +23,25 @@ export class SyntaxGenerator {
 
   private addToScope(res: Resource) {
     console.log("addToScope");
-    console.log(JSON.stringify(res));
-    if (res.inScope !== undefined) {
+    console.log(JSON.stringify(res,null,2));
+    if (res.inScope) {
       return; // already in scope
     }
     res.inScope = true;
     console.log(`using: ${res.using}`);
-    for (const child of res.using) {
-      if ( child ) {
-        this.addToScope(this.syntax[child]);  // recursive
+    for (const childName of res.using) {
+      console.log(`recursive addToScope on: ${childName}`);
+      const child = this.syntax[childName];
+      if ( child === undefined ) {
+	      console.log(`${childName} not found in ${this.syntax}`,null,2);
       }
+      this.addToScope(child);  // recursive
     }
   }
 
   private addResource(name: string, type: string, runnable: ISyntaxVisitable, using: string[], complex: boolean) {
     const key = `${type}/${name}`;
+    console.log(`Adding resource ${key} to ${this.syntax}`);
     this.syntax[key] = {
       key: key,
       name: name,
