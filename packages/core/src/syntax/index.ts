@@ -11,12 +11,11 @@ export interface ISyntaxVisitor {
 
   visitOptional(visitable: ISyntaxVisitable): void;
 
-  addComment(comment: string);
+  addComment(comment: string): void;
 
   visitZeroOrMore(visitable: ISyntaxVisitable): void;
 
   visitOneOrMore(visitable: ISyntaxVisitable): void;
-
 
   visitMultipleChoice(defaultChoice: number, list: ISyntaxVisitable[]): void;
 

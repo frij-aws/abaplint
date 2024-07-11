@@ -4,8 +4,6 @@ import {INode} from "../../nodes/_inode";
 import {IStatement, MacroCall, NativeSQL} from "../../2_statements/statements/_statement";
 import {IStructureRunnable} from "./_structure_runnable";
 import {IMatch} from "./_match";
-import {DiagnosticSeverity} from "vscode-languageserver-types";
-import Error = DiagnosticSeverity.Error;
 import {ISyntaxVisitor} from "../../../syntax";
 
 class Sequence implements IStructureRunnable {

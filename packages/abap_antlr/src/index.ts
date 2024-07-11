@@ -40,6 +40,7 @@ export async function run(arg: Arguments) {
     return "";
   } else {
     process.stderr.write("abaplint " + Registry.abaplintVersion() + "\n");
+    process.stderr.write(`Args: ${JSON.stringify(arg)}\n`);
 
     return out(arg);
   }

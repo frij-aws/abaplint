@@ -7,6 +7,7 @@ interface Resource {
   type: string;
   using: string[];
   runnable: ISyntaxVisitable;
+  complex: boolean;
   inScope: boolean;
 }
 interface Syntax {
@@ -38,6 +39,7 @@ export class SyntaxGenerator {
       type: type,
       runnable: runnable,
       using: using,
+      complex: complex,
       inScope: false,
     };
   }
