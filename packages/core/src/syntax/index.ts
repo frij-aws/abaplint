@@ -27,7 +27,7 @@ export interface ISyntaxVisitor {
 
   visitTerminalStatement(text: string): void;
 
-  visitTerminalStructure(name): void;
+  visitTerminalStructure(name: string): void;
 }
 
 export interface ISyntaxVisitable {
