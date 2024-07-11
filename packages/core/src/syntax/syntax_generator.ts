@@ -22,12 +22,17 @@ export class SyntaxGenerator {
   }
 
   private addToScope(res: Resource) {
+    console.log("addToScope");
+    console.log(JSON.stringify(res));
     if (res.inScope) {
       return; // already in scope
     }
     res.inScope = true;
+    console.log(`using: ${res.using}`);
     for (const child of res.using) {
-      this.addToScope(this.syntax[child]);  // recursive
+      if ( child ) {
+        this.addToScope(this.syntax[child]);  // recursive
+      }
     }
   }
 

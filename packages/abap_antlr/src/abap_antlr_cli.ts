@@ -4,7 +4,7 @@ import * as minimist from "minimist";
 const parsed = minimist(process.argv.slice(2), {string: "outFile"});
 console.log(JSON.stringify(parsed));
 const arg: Arguments = {
-  outFile: parsed["outfile"],
+  outFile: parsed["outFile"],
   showHelp: parsed["h"] !== undefined || parsed["help"] !== undefined,
 };
 
