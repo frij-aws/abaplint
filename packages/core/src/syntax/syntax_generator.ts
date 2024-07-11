@@ -24,7 +24,7 @@ export class SyntaxGenerator {
   private addToScope(res: Resource) {
     console.log("addToScope");
     console.log(JSON.stringify(res));
-    if (res.inScope) {
+    if (res.inScope !== undefined) {
       return; // already in scope
     }
     res.inScope = true;
