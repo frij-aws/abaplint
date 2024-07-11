@@ -10,11 +10,32 @@ interface Resource {
   complex: boolean;
   inScope: boolean;
 }
+
 interface Syntax {
   [key: string]: Resource;
 }
+
 export class SyntaxGenerator {
-  private syntax: Syntax = {};
+  private syntax: Syntax = {
+    baz: {
+      key: "baz",
+      name: "baz",
+      type: "type",
+      runnable: undefined,
+      using: ["a", "b"],
+      complex: false,
+      inScope: false,
+    },
+    foo: {
+      key: "foo",
+      name: "foo",
+      type: "type",
+      runnable: undefined,
+      using: [],
+      complex: false,
+      inScope: false,
+    },
+  };
   private readonly factory: ISyntaxFactory;
 
   public constructor(factory: ISyntaxFactory) {
@@ -23,7 +44,7 @@ export class SyntaxGenerator {
 
   private addToScope(res: Resource) {
     console.log("addToScope");
-    console.log(JSON.stringify(res,null,2));
+    console.log(JSON.stringify(res, null, 2));
     if (res.inScope) {
       return; // already in scope
     }
@@ -32,8 +53,8 @@ export class SyntaxGenerator {
     for (const childName of res.using) {
       console.log(`recursive addToScope on: ${childName}`);
       const child = this.syntax[childName];
-      if ( child === undefined ) {
-	      console.log(`${childName} not found in ${this.syntax}`,null,2);
+      if (child === undefined) {
+        console.log(`${childName} not found in ${this.syntax}`, null, 2);
       }
       this.addToScope(child);  // recursive
     }
