@@ -376,9 +376,8 @@ class SubStatement implements IStructureRunnable {
     }
   }
   public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
-    visitor.visitTerminalStructure(this.className());
+    visitor.visitTerminalStatement(this.className());
   }
-
 }
 
 export function seq(first: IStructureRunnable, ...rest: IStructureRunnable[]): IStructureRunnable {

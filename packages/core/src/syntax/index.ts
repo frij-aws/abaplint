@@ -3,11 +3,7 @@ import {SyntaxGenerator} from "./syntax_generator";
 export interface ISyntaxVisitor {
   visitToken(text: string): void;
 
-  visitSequence(...list: ISyntaxVisitable[]): void;
-
   visitSequence(list: ISyntaxVisitable[]): void;
-
-  visitComment(text: string): void;
 
   visitOptional(visitable: ISyntaxVisitable): void;
 
@@ -23,11 +19,19 @@ export interface ISyntaxVisitor {
 
   visitNonTerminalExpression(text: string): void;
 
-  visitNonTerminalStructure(name: string): void;
+  visitNonTerminalStructure(text: string): void;
 
   visitTerminalStatement(text: string): void;
 
-  visitTerminalStructure(name: string): void;
+  visitTerminalStructure(text: string): void;
+
+  visitRegex(r: RegExp): void;
+
+  startEntry(): void;
+
+  endEntry(): void;
+
+  visitFailStar(visitable: ISyntaxVisitable): void;
 }
 
 export interface ISyntaxVisitable {
@@ -36,7 +40,7 @@ export interface ISyntaxVisitable {
 
 
 export interface ISyntaxFactory {
-  newVisitor(): ISyntaxVisitor;
+  newVisitor(name: string, type: String): ISyntaxVisitor;
 }
 
 export {SyntaxGenerator};

@@ -52,7 +52,8 @@ class Regex implements IStatementRunnable {
   }
 
   public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
-    visitor.visitTerminalStatement(this.regexp.source.replace(/\\/g, "\\\\"));
+    // console.log(`Visitor ${visitor}: ${JSON.stringify(visitor)}`);
+    visitor.visitRegex(this.regexp);
   }
 }
 
@@ -155,10 +156,9 @@ class Token implements IStatementRunnable {
   public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
     let text = this.name;
 
-    const toke: any = Tokens;
     for (const token in Tokens) {
-      if (token.toUpperCase() === this.name && toke[token].railroad) {
-        text = toke[token].railroad();
+      if (token.toUpperCase() === this.name) {
+        text = this.name;
         break;
       }
     }
@@ -230,7 +230,7 @@ class Vers implements IStatementRunnable {
       text += " or " + this.or;
     }
     visitor.addComment(text);
-    visitor.visitSequence(this.runnable);
+    visitor.visitSequence([this.runnable]);
   }
 }
 
@@ -278,7 +278,7 @@ class VersNot implements IStatementRunnable {
 
   public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
     visitor.addComment("not " + this.version);
-    visitor.visitSequence(this.runnable);
+    visitor.visitSequence([this.runnable]);
   }
 }
 
@@ -911,7 +911,7 @@ class FailStar implements IStatementRunnable {
     return [];
   }
   public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
-    visitor.visitTerminalStatement("!FailStar");  // TODO figure out what this is
+    visitor.visitFailStar(this);  // TODO figure out what this is
   }
 
 }
