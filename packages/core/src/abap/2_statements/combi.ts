@@ -99,7 +99,7 @@ class Word implements IStatementRunnable {
   }
 
   public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
-    visitor.visitTerminalStatement(this.s);
+    visitor.visitToken(this.s);
   }
 
 }
@@ -701,7 +701,7 @@ class WordSequence implements IStatementRunnable {
     return this.words[0].first();
   }
   public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
-    visitor.visitTerminalStatement(this.stri);
+    visitor.visitToken(this.stri);
   }
 }
 
@@ -880,7 +880,7 @@ class FailCombinator implements IStatementRunnable {
   }
 
   public acceptSyntaxVisitor(visitor: ISyntaxVisitor): void {
-    visitor.visitTerminalStatement("!FailCombinator");  // TODO figure out what this is
+    visitor.visitFailCombinator(this);  // TODO figure out what this is
   }
 }
 

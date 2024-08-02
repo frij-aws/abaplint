@@ -32,6 +32,8 @@ export interface ISyntaxVisitor {
   endEntry(): void;
 
   visitFailStar(visitable: ISyntaxVisitable): void;
+
+  visitFailCombinator(visitable: ISyntaxVisitable): void;
 }
 
 export interface ISyntaxVisitable {

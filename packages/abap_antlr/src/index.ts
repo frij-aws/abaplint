@@ -18,7 +18,7 @@ let braceCount = 0;
 
 export class AntlrVisitor implements ISyntaxVisitor {
   private readonly factory: AntlrFactory;
-
+  private static clauseCount = 0;
   protected result: string;
   private readonly name: string;
   private readonly type: string;
@@ -90,7 +90,9 @@ export class AntlrVisitor implements ISyntaxVisitor {
       }
     }
   }
-
+  private getClauseCount(): number {
+    return AntlrVisitor.clauseCount++;
+  }
   public addComment(comment: string): void {
     this.write(`// ${comment}\n`);
   }
@@ -111,6 +113,7 @@ export class AntlrVisitor implements ISyntaxVisitor {
   }
 
   public visitOneOrMore(visitable: ISyntaxVisitable): void {
+    console.log(this.getClauseCount());
     this.write("(");
     this.invokeChildVisitor(visitable);
     this.writeLine(")+");
@@ -125,14 +128,20 @@ export class AntlrVisitor implements ISyntaxVisitor {
     this.processSequence(list, false);
   }
 
+  // AKA permutation
   public visitMultipleChoice(defaultChoice: number, list: ISyntaxVisitable[]): void {
     // TODO figure out what to do with defaultChoice
     console.log(`multiplechoice(${defaultChoice})-... `);
     this.write("(");
+    this.processSequence(list, true);
+    /*
+    let j = 0;
     for (const item of list) {
       this.visitOptional(item); // TODO known bug, this will be zero or more choices, but I think we must choose at least one
+      j++;
     }
-    this.write(")");
+     */
+    this.write(")+");
   }
 
   public visitChoice(defaultChoice: number, list: ISyntaxVisitable[]): void {
@@ -161,7 +170,17 @@ export class AntlrVisitor implements ISyntaxVisitor {
 
   public visitTerminalStatement(text: string): void {
     console.log("visitTerminalStatement(" + text + ")");
-    this.processToken(text);
+    /*
+    if ( text === "MacroCall" || text === "NativeSQL" || text === "MacroContent" ) {
+      console.log(`Skipping incomplete statement ${text}`);  // these are wrong in abapgit
+    }
+    else {
+
+     */
+    this.write(`${this.getIdentifier(text, "statement").toLowerCase()}`);
+    /*
+    }
+     */
   }
 
   public visitTerminalStructure(text: string): void {
@@ -191,12 +210,17 @@ export class AntlrVisitor implements ISyntaxVisitor {
     // TODO figure out what to do with this
   }
 
+  public visitFailCombinator(visitable: ISyntaxVisitable): void {
+    console.log(`visitFailCombinator(${JSON.stringify(visitable)})`);
+    // TODO figure out what to do with this
+  }
+
   public startEntry(): void {
     this.write(`${this.getIdentifier(this.name, this.type)} : `);
   }
 
   public endEntry(): void {
-    if ( this.type === "statement" ) {
+    if (this.type === "statement") {
       this.write(" PERIOD"); // end statements with a period
     }
     this.factory.stream.write(this.result.replace(/\n\s*\n/g, "\n") + ";\n\n");

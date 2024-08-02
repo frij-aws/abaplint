@@ -32,8 +32,7 @@ export class SyntaxGenerator {
       const child = this.syntax[childName];
       if (child === undefined) {
         console.log(`ERROR ${childName} not found`);
-      }
-      else {
+      } else {
         this.addToScope(child);  // recursive
       }
     }
@@ -52,6 +51,7 @@ export class SyntaxGenerator {
       inScope: false,
     };
   }
+
   private writeInScopeResource() {
     for (const res of Object.values(this.syntax)) {
       if (!res.inScope) {

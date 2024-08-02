@@ -1,10 +1,6 @@
 export const OPENING_BOILERPLATE = `
 grammar ABAP2;
 
-@header {
-    package antlr;
-}
-
 /* DEFINITION SECTION */
 
 `;
@@ -32,6 +28,7 @@ EVENTNAME_REGEX: NAME_REGEX;
 DASHFIELDSUB_REGEX: NAME_REGEX;
 FIELDSUB_REGEX: NAME_REGEX;
 DASHFIELDSYMBOL_REGEX: NAME_REGEX;
+DEFINITIONNAME_REGEX: NAME_REGEX;
 ALTFIELDSYMBOL_REGEX: NAME_REGEX;
 FORMNAME_REGEX: NAME_REGEX;
 INCLUDENAME_REGEX: NAME_REGEX;
@@ -48,14 +45,40 @@ WRITEOFFSETLENGTH3_REGEX: NAME_REGEX;
 SYSTEMCALL_REGEX: NAME_REGEX;
 CLUSTER_REGEX: NAME_REGEX;
 TABLEFUNCTION_REGEX: NAME_REGEX;
-
+ASSOCIATIONNAME_REGEX: NAME_REGEX;
 SQL_FIELD_NAME_REGEX: NAME_REGEX;
-
 FIELDSYMBOL_REGEX : LEFTARROW NAME_REGEX RIGHTARROW
             | LEFTARROW NAME_REGEX DASH NAME_REGEX RIGHTARROW
             ;
-            
-            
+
+Z1: NAME_REGEX;
+Z2: NAME_REGEX;
+Z3: NAME_REGEX;
+Z4: NAME_REGEX;
+Z5: NAME_REGEX;
+Z6: NAME_REGEX;
+Z7: NAME_REGEX;
+Z8: NAME_REGEX;
+Z9: NAME_REGEX;
+Z10: NAME_REGEX;
+Z11: NAME_REGEX;
+Z12: NAME_REGEX;
+Z13: NAME_REGEX;
+Z14: NAME_REGEX;
+Z15: NAME_REGEX;
+Z16: NAME_REGEX;
+Z17: NAME_REGEX;
+Z18: NAME_REGEX;
+Z19: NAME_REGEX;
+Z20: NAME_REGEX;
+Z21: NAME_REGEX;
+Z22: NAME_REGEX;
+Z23: NAME_REGEX;
+Z24: NAME_REGEX;
+Z25: NAME_REGEX;
+
+K_A: A;
+
 // Ignored
 COMMENT_REGEX : ([\\n] '*' ~[\\r\\n]*| '"' ~[\\r\\n]*) -> skip;
 WS : [ \\t\\n]+ -> skip;
@@ -67,7 +90,14 @@ defsection : classdefinition_structure
            ;
 classfile: defsection classimplementation_structure?
            ;
-           
+ 
+ // these defs hide deficiencies in the abaplint grammar
+macrocall_statement: MACROCALL_DUMMY;
+nativesql_statement: NATIVESQL_DUMMY;
+macrocontent_statement: MACRODEF_DUMMY;
+MACROCALL_DUMMY: 'NEVEREVERHAPPENING1';
+NATIVESQL_DUMMY: 'NEVEREVERHAPPENING2';
+MACRODEF_DUMMY: 'NEVEREVERHAPPENING3';          
 `;
 
 /*
@@ -156,6 +186,7 @@ export const PREDEFINED_SYMBOLS: StringMap = {
   "$": "DOLLAR",
   ",": "COMMA",
   "=": "EQ",
+  "|": "PIPE",
 };
 
 // TODO figure out how to translate javascript regex into ANTLR regex

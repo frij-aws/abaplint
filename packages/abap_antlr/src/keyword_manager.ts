@@ -26,6 +26,8 @@ export class KeywordManager {
       const L = l.toUpperCase();
       this.representation[L] = L; // special case for uppercase and lowercase will be handled later
       this.identifiers[L] = L;
+
+      this.representation[`K_${L}`] = L;
     }
     // add digits 0-9
     for (let j = 0; j <= 9; j++) {
@@ -62,6 +64,7 @@ export class KeywordManager {
     }
     this.representation[identifier] = tokens.join(" ");
     this.identifiers[text] = identifier;
+    console.log(`add: ${text}  => ${identifier} with representation ${this.representation[identifier]}`);
   }
 
   public getTokens(text: string): string | undefined {
